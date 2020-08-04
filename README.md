@@ -22,7 +22,3 @@ Images：
 ④最终作品照片
 Sourcecode：FPGA原码
 ExecutableFiles：可直接运行的bit文件
-
-7.作品展示照片
-
-8.项目流程图
