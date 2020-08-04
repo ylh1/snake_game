@@ -1,0 +1,357 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2020/08/01 09:56:10
+// Design Name: 
+// Module Name: snake
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module snake(
+   clk,upbt,downbt,rightbt,leftbt,box_x,box_y,game_over1,game_over2,key1,key2,key3,
+   body_x0,body_y0,body_x1,body_y1,body_x2,body_y2,body_x3,body_y3,body_x4,body_y4,
+   body_x5,body_y5,body_x6,body_y6,body_x7,body_y7,body_x8,body_y8,body_x9,body_y9,
+   box,s1,s2);
+    input clk,upbt,downbt,rightbt,leftbt;
+    output reg [3:0] box_x;
+    output reg [3:0] box_y;  
+    output reg [3:0] body_x0=0;
+    output reg [3:0] body_y0=0;
+    output reg [3:0] body_x1;
+    output reg [3:0] body_y1;
+    output reg [3:0] body_x2; 
+    output reg [3:0] body_y2;
+    output reg [3:0] body_x3; 
+    output reg [3:0] body_y3;
+    output reg [3:0] body_x4; 
+    output reg [3:0] body_y4;    
+    output reg [3:0] body_x5; 
+    output reg [3:0] body_y5;
+    output reg [3:0] body_x6; 
+    output reg [3:0] body_y6;
+    output reg [3:0] body_x7; 
+    output reg [3:0] body_y7;      
+    output reg [3:0] body_x8; 
+    output reg [3:0] body_y8;
+    output reg [3:0] body_x9; 
+    output reg [3:0] body_y9;        
+    output reg game_over1=0;
+    output reg game_over2=0;// game_over=1，游戏结束    
+    output reg box;  
+    input key1;
+    input key2;
+    input key3;  
+    input s1;//速度控制
+    input s2;
+    reg [3:0] l=1;   
+    reg [35:0] cnt;
+    reg [35:0] speed=35'd100000000;
+    reg [35:0] n=35'd10000000;
+    reg [35:0] p;    
+    reg [35:0] a;  
+    reg [35:0] b;
+    reg [2:0] x;
+    reg [2:0] y; 
+    reg start=0;
+    reg pause=0;
+    reg restart=0;
+
+  
+  //游戏状态调节   
+  always@(posedge clk)
+  begin
+    if(key1==0)
+        start<=1;
+  end        
+  
+ always@(posedge clk)
+  begin
+    if(key2==0)
+        pause<=1;
+    if(key3==0)
+        pause<=0;   
+  end  
+  
+ //速度调节准备           
+ always@(posedge clk)
+ begin
+    if(p<=35'd10000000)
+         p<=p+1;
+    else
+    begin
+        p<=0;
+        if(s1==1&&speed>35'd100)
+             speed<=speed-n;
+        if(s2==1)
+             speed<=speed+n;        
+    end
+ end 
+    
+ //判断方向direction，为后面蛇身移动做准备
+ //四个方向键有按下时，如果当前不是反向，则将蛇头坐标实现对应的移动：   
+parameter right=2'd0,left=2'd1,down=2'd2,up=2'd3;
+reg[1:0] direction=0;//定义初始方向为向上      
+always@(posedge clk or posedge upbt or posedge downbt or posedge rightbt or posedge leftbt) 
+     begin
+        if(upbt) 
+            begin 
+                if(direction!=down) 
+                    direction<=up; 
+            end
+        else if(downbt) 
+            begin 
+                if(direction!=up) 
+                    direction<=down; 
+            end
+        else if(rightbt) 
+            begin 
+                if(direction!=left) 
+                    direction<=right; 
+            end
+        else if(leftbt) 
+            begin 
+                if(direction!=right) 
+                    direction<=left; 
+            end     
+    end
+
+//蛇身移动
+always@(posedge clk)
+begin
+    if(cnt<=speed)
+        cnt<=cnt+1;
+     else
+         begin  
+            cnt<=0;                     
+         begin
+             if(start==1&&pause==0)  
+                  begin                  
+                  case(direction)//根据上一步按键确定的direction方向先进行蛇头的移动             
+                    up: begin body_y0<=body_y0+1; end
+                    down: begin body_y0<=body_y0-1; end
+                    left: begin body_x0<=body_x0-1; end
+                    right: begin body_x0<=body_x0+1; end
+                  endcase
+             case(l)
+              2: 
+                 begin
+                    body_x1<=body_x0;
+                    body_y1<=body_y0;
+                 end
+              3:
+                begin    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end
+             4:
+               begin    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end        
+            5:
+               begin  
+                   body_x4<=body_x3;
+                   body_y4<=body_y3;                    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end                  
+            6:
+               begin  
+                   body_x5<=body_x4;
+                   body_y5<=body_y4;                
+                   body_x4<=body_x3;
+                   body_y4<=body_y3;                    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end   
+            7:
+               begin  
+                   body_x6<=body_x5;
+                   body_y6<=body_y5;               
+                   body_x5<=body_x4;
+                   body_y5<=body_y4;                
+                   body_x4<=body_x3;
+                   body_y4<=body_y3;                    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end   
+            8:
+               begin  
+                   body_x7<=body_x6;
+                   body_y7<=body_y6;                
+                   body_x6<=body_x5;
+                   body_y6<=body_y5;               
+                   body_x5<=body_x4;
+                   body_y5<=body_y4;                
+                   body_x4<=body_x3;
+                   body_y4<=body_y3;                    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end                      
+            9:
+               begin  
+                   body_x8<=body_x7;
+                   body_y8<=body_y7;                 
+                   body_x7<=body_x6;
+                   body_y7<=body_y6;                
+                   body_x6<=body_x5;
+                   body_y6<=body_y5;               
+                   body_x5<=body_x4;
+                   body_y5<=body_y4;                
+                   body_x4<=body_x3;
+                   body_y4<=body_y3;                    
+                   body_x3<=body_x2;
+                   body_y3<=body_y2;    
+                   body_x2<=body_x1;
+                   body_y2<=body_y1;
+                   body_x1<=body_x0;
+                   body_y1<=body_y0;
+               end                  
+        endcase             
+end   
+end
+end       
+end
+
+//吃到方块后蛇的长度增加
+always@(posedge clk)
+begin
+    if(a<=speed+10)//修改：1个clk上升沿是1ns，1s就有10的九次方个clk上升沿，改了cnt_1s
+        a<=a+1;
+     else
+         begin  
+            a<=0;  
+            if(body_x0==box_x&&body_y0==box_y)
+               begin
+                    l<=l+1;       
+               end
+          end
+end
+
+//判断是否吃到方块
+ always@(posedge clk)
+begin
+    if(b<=speed)
+        b<=b+1;
+     else
+         begin  
+            b<=0;  
+            if(body_x0==box_x&&body_y0==box_y)
+                box=0;//发送信号重新产生box              
+            else  box=1;
+          end
+end          
+
+//产生方块      
+always@(posedge clk)
+begin
+    if(box==0&&l<=4)
+    begin
+            x<=body_x0*body_y0+l+3;
+            y<=(body_x0+body_y0)*l;
+            box_x<=x;
+            box_y<=y;             
+    end
+   if(box==0&&l>4)
+    begin
+            x<=body_x3*body_y3+l+3;
+            y<=(body_x3+body_y3)*l;
+            box_x<=x;
+            box_y<=y;             
+    end
+end   
+
+//判断蛇是否撞到了墙
+always@(posedge clk)
+begin
+    if(body_x0>7|| body_y0>7)
+    game_over1<=1;       
+end
+
+//判断是否吃到了自己：蛇头撞到身体的任何一节
+always@(posedge clk)
+begin         
+case(l)
+ 5:
+ begin
+    if((body_x0==body_x4&&body_y0==body_y4)||(body_x0==body_x3&&body_y0==body_y3)
+    ||(body_x0==body_x2&&body_y0==body_y2)||(body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;   
+ end 
+ 6:
+ begin
+    if((body_x0==body_x5&&body_y0==body_y5)||(body_x0==body_x4&&body_y0==body_y4)
+    ||(body_x0==body_x3&&body_y0==body_y3)||(body_x0==body_x2&&body_y0==body_y2)||
+    (body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;
+ end 
+  7:
+ begin
+    if((body_x0==body_x6&&body_y0==body_y6)||(body_x0==body_x5&&body_y0==body_y5)||
+    (body_x0==body_x4&&body_y0==body_y4)||(body_x0==body_x3&&body_y0==body_y3)||
+    (body_x0==body_x2&&body_y0==body_y2)||(body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;
+ end 
+  8:
+ begin
+    if((body_x0==body_x7&&body_y0==body_y7)||(body_x0==body_x6&&body_y0==body_y6)||
+    (body_x0==body_x5&&body_y0==body_y5)||(body_x0==body_x4&&body_y0==body_y4)
+    ||(body_x0==body_x3&&body_y0==body_y3)||(body_x0==body_x2&&body_y0==body_y2)||
+    (body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;
+ end  
+  9:
+ begin
+    if((body_x0==body_x8&&body_y0==body_y8)||(body_x0==body_x7&&body_y0==body_y7)||
+    (body_x0==body_x6&&body_y0==body_y6)||(body_x0==body_x5&&body_y0==body_y5)||
+    (body_x0==body_x4&&body_y0==body_y4)||(body_x0==body_x3&&body_y0==body_y3)||
+    (body_x0==body_x2&&body_y0==body_y2)||(body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;
+ end  
+ 10:
+ begin
+    if((body_x0==body_x9&&body_y0==body_y9)||(body_x0==body_x8&&body_y0==body_y8)||
+    (body_x0==body_x7&&body_y0==body_y7)||(body_x0==body_x6&&body_y0==body_y6)||
+    (body_x0==body_x5&&body_y0==body_y5)||(body_x0==body_x4&&body_y0==body_y4)||
+    (body_x0==body_x3&&body_y0==body_y3)||(body_x0==body_x2&&body_y0==body_y2)||
+    (body_x0==body_x1&&body_y0==body_y1))
+    game_over2<=1;
+ end   
+endcase
+end
+endmodule
